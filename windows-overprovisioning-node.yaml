@@ -1,0 +1,48 @@
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: overprovisioning
+value: -1
+globalDefault: false
+description: "This priority class is for overprovisioning"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ns-windows-management
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: overprovisioning-windows
+  namespace: ns-windows-management
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: overprovisioning-windows
+  template:
+    metadata:
+      labels:
+        app: overprovisioning-windows
+    spec:
+      nodeSelector:
+        # (Mandatory) set this to the node pool name
+        agentpool: npw22
+      priorityClassName: overprovisioning
+      containers:
+      - name: reserve-resources
+        image: registry.k8s.io/pause:3.9
+        resources:
+          requests:
+            cpu: "100m"
+            # (Mandatory) set this to the node's sku memory size in GiB * 80%,  e.g. Standard_D32ads_v5 has 128Gi
+            memory: "102Gi"
+      # (Optional) Taint the node to run the daemonset on spot instances
+      tolerations:
+      - key: "kubernetes.azure.com/scalesetpriority"
+        operator: "Equal"
+        value: "spot"
+        effect: "NoSchedule"
+
+

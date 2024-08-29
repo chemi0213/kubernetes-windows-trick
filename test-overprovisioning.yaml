@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-overprovisioning
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: test-overprovisioning
+  template:
+    metadata:
+      labels:
+        app: test-overprovisioning
+    spec:
+      securityContext:
+        windowsOptions:
+          hostProcess: true
+          runAsUserName: "NT AUTHORITY\\SYSTEM"
+      hostNetwork: true
+      containers:
+        - name: hpc
+          image: mcr.microsoft.com/windows/servercore:ltsc2022
+          command:
+            - powershell.exe
+            - -Command
+            - "Start-Sleep 2147483"
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: "100m"
+              # (Mandatory) set this to the node's sku memory size in GiB * 80%,  e.g. Standard_D32ads_v5 has 128Gi
+              memory: "102Gi"
+      nodeSelector:
+        kubernetes.io/os: windows
+      tolerations:
+        - effect: NoSchedule
+          key: node.kubernetes.io/unschedulable
+          operator: Exists
+        - effect: NoSchedule
+          key: node.kubernetes.io/network-unavailable
+          operator: Exists
+        - effect: NoExecute
+          key: node.kubernetes.io/unreachable
+          operator: Exists
+        # (Optional) Taints for Azure Spot VMs
+        - key: "kubernetes.azure.com/scalesetpriority"
+          operator: "Equal"
+          value: "spot"
+          effect: "NoSchedule"
