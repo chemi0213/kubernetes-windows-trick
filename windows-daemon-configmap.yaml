@@ -9,6 +9,7 @@ metadata:
   namespace: ns-windows-management
   name: ds-windows-node-config
   annotations:
+    # (Optional) Add annotation to reload the daemonset when the configmap changes
     configmap.reloader.stakater.com/reload: "cm-windows-node-cronjob"
   labels:
     app: windows-node-config
@@ -56,6 +57,7 @@ metadata:
   namespace: ns-windows-management
   name: cm-windows-node-cronjob
   annotations:
+    # (Optional) Add annotation to match the configmap with the daemonset
     reloader.stakater.com/match: "true"
 data:
   cronjob.ps1: |
