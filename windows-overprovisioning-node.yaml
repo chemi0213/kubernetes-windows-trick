@@ -17,6 +17,7 @@ metadata:
   name: overprovisioning-windows
   namespace: ns-windows-management
 spec:
+  # (Mandatory) Total nodes = n + replicas (e.g. 1)
   replicas: 1
   selector:
     matchLabels:
