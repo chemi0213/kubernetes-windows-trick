@@ -40,6 +40,7 @@ spec:
         configMap:
           name: cm-windows-node-cronjob
       restartPolicy: Always
+      terminationGracePeriodSeconds: 30
       nodeSelector:
         kubernetes.io/os: windows
       # (Optional) Taint the node to run the daemonset on spot instances

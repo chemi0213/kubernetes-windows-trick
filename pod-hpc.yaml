@@ -4,6 +4,7 @@ metadata:
   labels:
     pod: hpc
   name: hpc
+  namespace: default
 spec:
   securityContext:
     windowsOptions:
@@ -20,6 +21,7 @@ spec:
       imagePullPolicy: IfNotPresent
   nodeSelector:
     kubernetes.io/os: windows
+    # (Mandatory) Node name of the Azure VM
     kubernetes.io/hostname: aksnpw22000005
   tolerations:
     - effect: NoSchedule
@@ -31,6 +33,7 @@ spec:
     - effect: NoExecute
       key: node.kubernetes.io/unreachable
       operator: Exists
+    # (Optional) Taints for Azure Spot VMs
     - key: "kubernetes.azure.com/scalesetpriority"
       operator: "Equal"
       value: "spot"
