@@ -4,7 +4,7 @@ metadata:
   name: node-high-priority
 value: 1000000
 globalDefault: false
-description: "This priority class is for high priority DaemonSet pods."
+description: "This priority class is for high priority pods."
 ---
 apiVersion: v1
 kind: Namespace
