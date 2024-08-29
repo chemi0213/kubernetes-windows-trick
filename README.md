@@ -8,7 +8,11 @@ This file contains the configuration for DaemonSet that runs on Windows nodes in
 
 ![](images/windows-daemonset.png)
 
-## AKS Overprovisioning
+## windows-overprovisioning-node.yaml
+
+The file containe the over-provisioning configuration for Windows node pool in AKS cluster.
+
+## References
 
 - [Azure Kubernetes Service (AKS): How to over-provision node pools][1]
 
