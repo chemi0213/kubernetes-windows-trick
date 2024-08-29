@@ -135,5 +135,6 @@ data:
     $currentDateTime = Get-Date
     Write-Output "$currentDateTime - Script execution completed"
 
-    Start-Sleep -Seconds 30
+    # Sleep for 1 hour before exiting
+    Start-Sleep -Seconds 3600
     exit 0
