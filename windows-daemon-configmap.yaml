@@ -70,14 +70,14 @@ data:
         if ($processes) {
             foreach ($process in $processes) {
                 if ($process.PriorityClass -ne $desiredPriority) {
-                    Write-Output "Setting priority of $processName (PID: $($process.Id)) to $desiredPriority"
+                    Write-Output "Setting priority of $processName (PID: $($process.Id)) to $desiredPriority" | Tee-Object -FilePath $logFilePath -Append
                     $process.PriorityClass = [System.Diagnostics.ProcessPriorityClass]::$desiredPriority
                 } else {
-                    Write-Output "Priority of $processName (PID: $($process.Id)) is already $desiredPriority"
+                    Write-Output "Priority of $processName (PID: $($process.Id)) is already $desiredPriority" | Tee-Object -FilePath $logFilePath -Append
                 }
             }
         } else {
-            Write-Output "$processName process not found"
+            Write-Output "$processName process not found" | Tee-Object -FilePath $logFilePath -Append
         }
     }
 
@@ -94,55 +94,62 @@ data:
         if ($pagefileSettings) {
             $currentSizeMB = $pagefileSettings.MaximumSize
             if ($currentSizeMB -ne $desiredSizeMB) {
-                Write-Output "Disabling automatic pagefile management"
+                Write-Output "Disabling automatic pagefile management" | Tee-Object -FilePath $logFilePath -Append
                 $computersys = Get-WmiObject Win32_ComputerSystem -EnableAllPrivileges;
                 $computersys.AutomaticManagedPagefile = $False;
                 $computersys.Put();
-                Write-Output "Setting pagefile size to $desiredSizeGB GB"
+                Write-Output "Setting pagefile size to $desiredSizeGB GB" | Tee-Object -FilePath $logFilePath -Append
                 $pagefileSettings.InitialSize = $desiredSizeMB
                 $pagefileSettings.MaximumSize = $desiredSizeMB
                 $pagefileSettings.Put() | Out-Null
 
-                Write-Output "Rebooting system to apply pagefile size changes"
+                Write-Output "Rebooting system to apply pagefile size changes" | Tee-Object -FilePath $logFilePath -Append
                 Restart-Computer -Force
             } else {
-                Write-Output "Pagefile size is already $desiredSizeGB GB"
+                Write-Output "Pagefile size is already $desiredSizeGB GB" | Tee-Object -FilePath $logFilePath -Append
             }
         } else {
-            Write-Output "Pagefile not found at $pagefilePath"
+            Write-Output "Pagefile not found at $pagefilePath" | Tee-Object -FilePath $logFilePath -Append
         }
     }
 
-    # function to get pagefile size
+    # Function to get pagefile size
     function Get-PagefileSize {
       $pageFileSettings = Get-WmiObject -Query "SELECT * FROM Win32_PageFileSetting"
       foreach ($setting in $pageFileSettings) {
-          Write-Output "-----------------------------"
-          Write-Output "Caption: $($setting.Caption)"
-          Write-Output "Description: $($setting.Description)"
-          Write-Output "Element: $($setting.Element)"
-          Write-Output "InitialSize: $($setting.InitialSize)"
-          Write-Output "MaximumSize: $($setting.MaximumSize)"
-          Write-Output "Name: $($setting.Name)"
-          Write-Output "SettingID: $($setting.SettingID)"
-          Write-Output "-----------------------------"
+          Write-Output "-----------------------------" | Tee-Object -FilePath $logFilePath -Append
+          Write-Output "Caption: $($setting.Caption)" | Tee-Object -FilePath $logFilePath -Append
+          Write-Output "Description: $($setting.Description)" | Tee-Object -FilePath $logFilePath -Append
+          Write-Output "Element: $($setting.Element)" | Tee-Object -FilePath $logFilePath -Append
+          Write-Output "InitialSize: $($setting.InitialSize)" | Tee-Object -FilePath $logFilePath -Append
+          Write-Output "MaximumSize: $($setting.MaximumSize)" | Tee-Object -FilePath $logFilePath -Append
+          Write-Output "Name: $($setting.Name)" | Tee-Object -FilePath $logFilePath -Append
+          Write-Output "SettingID: $($setting.SettingID)" | Tee-Object -FilePath $logFilePath -Append
+          Write-Output "-----------------------------" | Tee-Object -FilePath $logFilePath -Append
       }
     }
 
     #
     # Main script execution
     #
+
+    $logFilePath = "C:\ds-output.log"
+
+    # Get computer name
+    $computerName = [System.Environment]::MachineName
+    Write-Output "Computer Name: $computerName" | Tee-Object -FilePath $logFilePath -Append
+
     $currentDateTime = Get-Date
-    Write-Output "$currentDateTime - Checking and setting process priorities..."
+    Write-Output "$currentDateTime - Checking and setting process priorities..." | Tee-Object -FilePath $logFilePath -Append
     Set-ProcessPriority -processName "containerd" -desiredPriority "High"
     Set-ProcessPriority -processName "kubelet" -desiredPriority "High"
 
-    Write-Output "Checking and setting pagefile size..."
+    Write-Output "Checking and setting pagefile size..." | Tee-Object -FilePath $logFilePath -Append
     Get-PagefileSize
     Set-PagefileSize -pagefilePath "C:\\pagefile.sys" -desiredSizeGB 20
 
     $currentDateTime = Get-Date
-    Write-Output "$currentDateTime - Script execution completed"
+    Write-Output "$currentDateTime - Script execution completed" | Tee-Object -FilePath $logFilePath -Append
 
     # Sleep for 1 hour before exiting
     Start-Sleep -Seconds 3600
