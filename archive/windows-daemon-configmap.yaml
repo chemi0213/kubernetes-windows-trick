@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: helloworld-windows
+  annotations:
+    configmap.reloader.stakater.com/reload: "onetime-job-script"
+  labels:
+    app: helloworld
+spec:
+  selector:
+    matchLabels:
+      app: helloworld
+  template:
+    metadata:
+      labels:
+        app: helloworld
+    spec:
+      securityContext:
+        windowsOptions:
+          hostProcess: true
+          runAsUserName: "NT AUTHORITY\\SYSTEM"
+      hostNetwork: true
+      containers:
+      - name: helloworld-container
+        image: mcr.microsoft.com/windows/servercore:ltsc2022
+        command: ["powershell.exe"]
+        args: ["-File", "C:\\tmp\\onetime-job.ps1"]
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - name: script-volume
+          mountPath: "C:\\tmp"
+      volumes:
+      - name: script-volume
+        configMap:
+          name: onetime-job-script
+      restartPolicy: Always
+      nodeSelector:
+        kubernetes.io/os: windows
+      tolerations:
+      - key: "kubernetes.azure.com/scalesetpriority"
+        operator: "Equal"
+        value: "spot"
+        effect: "NoSchedule"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: onetime-job-script
+  annotations:
+    reloader.stakater.com/match: "true"
+data:
+  onetime-job.ps1: |
+    #
+    # Output Hello World message to the console and write it to a file
+    #
+    $currentDateTime = Get-Date
+    $outputMessage = "Hello World`nCurrent Date and Time: $currentDateTime"
+    Write-Output $outputMessage
+    $filePath = "C:\helloworld789.txt"
+    $outputMessage | Out-File -FilePath $filePath -Encoding utf8
+    Write-Output "Message has been written to $filePath"
+
+    #
+    # Modify the priority of the containerd service to High
+    #
+    $process = Get-Process -Name containerd
+    $process.PriorityClass = [System.Diagnostics.ProcessPriorityClass]::High
+    $process | Select-Object Name, Id, PriorityClass
+
+    $process = Get-Process -Name kubelet
+    $process.PriorityClass = [System.Diagnostics.ProcessPriorityClass]::High
+    $process | Select-Object Name, Id, PriorityClass
+
+    Start-Sleep -Seconds 3600
+    exit 0

@@ -1,0 +1,139 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: helloworld-windows
+  annotations:
+    configmap.reloader.stakater.com/reload: "onetime-job-script"
+  labels:
+    app: helloworld
+spec:
+  selector:
+    matchLabels:
+      app: helloworld
+  template:
+    metadata:
+      labels:
+        app: helloworld
+    spec:
+      securityContext:
+        windowsOptions:
+          hostProcess: true
+          runAsUserName: "NT AUTHORITY\\SYSTEM"
+      hostNetwork: true
+      containers:
+      - name: helloworld-container
+        image: mcr.microsoft.com/windows/servercore:ltsc2022
+        command: ["powershell.exe"]
+        args: ["-File", "C:\\tmp\\onetime-job.ps1"]
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - name: script-volume
+          mountPath: "C:\\tmp"
+      volumes:
+      - name: script-volume
+        configMap:
+          name: onetime-job-script
+      restartPolicy: Always
+      nodeSelector:
+        kubernetes.io/os: windows
+      tolerations:
+      - key: "kubernetes.azure.com/scalesetpriority"
+        operator: "Equal"
+        value: "spot"
+        effect: "NoSchedule"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: onetime-job-script
+  annotations:
+    reloader.stakater.com/match: "true"
+data:
+  onetime-job.ps1: |
+    # Function to check and set process priority
+    function Set-ProcessPriority {
+        param (
+            [string]$processName,
+            [string]$desiredPriority
+        )
+
+        $processes = Get-Process -Name $processName -ErrorAction SilentlyContinue
+        if ($processes) {
+            foreach ($process in $processes) {
+                if ($process.PriorityClass -ne $desiredPriority) {
+                    Write-Output "Setting priority of $processName (PID: $($process.Id)) to $desiredPriority"
+                    $process.PriorityClass = [System.Diagnostics.ProcessPriorityClass]::$desiredPriority
+                } else {
+                    Write-Output "Priority of $processName (PID: $($process.Id)) is already $desiredPriority"
+                }
+            }
+        } else {
+            Write-Output "$processName process not found"
+        }
+    }
+
+    # Function to check and set pagefile size
+    function Set-PagefileSize {
+        param (
+            [string]$pagefilePath,
+            [int]$desiredSizeGB
+        )
+
+        $desiredSizeMB = $desiredSizeGB * 1024
+
+        $pagefileSettings = Get-WmiObject -Query "SELECT * FROM Win32_PageFileSetting Where Name='$pagefilePath'"
+        if ($pagefileSettings) {
+            $currentSizeMB = $pagefileSettings.MaximumSize
+            if ($currentSizeMB -ne $desiredSizeMB) {
+                Write-Output "Disabling automatic pagefile management"
+                $computersys = Get-WmiObject Win32_ComputerSystem -EnableAllPrivileges;
+                $computersys.AutomaticManagedPagefile = $False;
+                $computersys.Put();
+                Write-Output "Setting pagefile size to $desiredSizeGB GB"
+                $pagefileSettings.InitialSize = $desiredSizeMB
+                $pagefileSettings.MaximumSize = $desiredSizeMB
+                $pagefileSettings.Put() | Out-Null
+
+                Write-Output "Rebooting system to apply pagefile size changes"
+                Restart-Computer -Force
+            } else {
+                Write-Output "Pagefile size is already $desiredSizeGB GB"
+            }
+        } else {
+            Write-Output "Pagefile not found at $pagefilePath"
+        }
+    }
+
+    # function to get pagefile size
+    function Get-PagefileSize {
+      $pageFileSettings = Get-WmiObject -Query "SELECT * FROM Win32_PageFileSetting"
+      foreach ($setting in $pageFileSettings) {
+          Write-Output "-----------------------------"
+          Write-Output "Caption: $($setting.Caption)"
+          Write-Output "Description: $($setting.Description)"
+          Write-Output "Element: $($setting.Element)"
+          Write-Output "InitialSize: $($setting.InitialSize)"
+          Write-Output "MaximumSize: $($setting.MaximumSize)"
+          Write-Output "Name: $($setting.Name)"
+          Write-Output "SettingID: $($setting.SettingID)"
+          Write-Output "-----------------------------"
+      }
+    }
+
+    #
+    # Main script execution
+    #
+    $currentDateTime = Get-Date
+    Write-Output "$currentDateTime - Checking and setting process priorities..."
+    Set-ProcessPriority -processName "containerd" -desiredPriority "High"
+    Set-ProcessPriority -processName "kubelet" -desiredPriority "High"
+
+    Write-Output "Checking and setting pagefile size..."
+    Get-PagefileSize
+    Set-PagefileSize -pagefilePath "C:\\pagefile.sys" -desiredSizeGB 20
+
+    $currentDateTime = Get-Date
+    Write-Output "$currentDateTime - Script execution completed"
+
+    Start-Sleep -Seconds 30
+    exit 0
