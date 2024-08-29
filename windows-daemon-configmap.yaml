@@ -1,3 +1,11 @@
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: node-high-priority
+value: 1000000
+globalDefault: false
+description: "This priority class is for high priority DaemonSet pods."
+---
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -22,6 +30,7 @@ spec:
       labels:
         app: windows-node-config
     spec:
+      priorityClassName: node-high-priority
       securityContext:
         windowsOptions:
           hostProcess: true
@@ -135,8 +144,8 @@ data:
     # Set log file path
     $logFilePath = "C:\ds-output.log"
 
-    # Sleep for 1 hour before exiting
-    $sleepDuration = 3600
+    # Sleep for n second before exiting
+    $sleepDuration = 2147483
 
     # Set desired pagefile size in GB
     $desiredSizeGB = 20
