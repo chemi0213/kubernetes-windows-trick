@@ -1,0 +1,61 @@
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: node-low-priority
+value: 1000
+globalDefault: false
+description: "This priority class is for low priority pods"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ns-windows-management
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pre-warmed-windows-nodes
+  namespace: ns-windows-management
+spec:
+  # (Manadatory) Number of replicas = Number of pre-warmed nodes
+  replicas: 3
+  selector:
+    matchLabels:
+      app: pre-warmed-windows
+  template:
+    metadata:
+      labels:
+        app: pre-warmed-windows
+    spec:
+      nodeSelector:
+        kubernetes.io/os: windows
+      priorityClassName: node-low-priority
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - pre-warmed-windows
+            topologyKey: "kubernetes.io/hostname"
+      containers:
+      - name: pre-warmed-windows-container
+        image: mcr.microsoft.com/windows/servercore:ltsc2022
+        command:
+          - powershell.exe
+          - -Command
+          - "Start-Sleep 2147483"
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+      # (Optional) Taint the node to run the daemonset on spot instances
+      tolerations:
+      - key: "kubernetes.azure.com/scalesetpriority"
+        operator: "Equal"
+        value: "spot"
+        effect: "NoSchedule"
+
+
