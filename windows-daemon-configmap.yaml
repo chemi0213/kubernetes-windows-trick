@@ -119,7 +119,6 @@ data:
     function Get-PagefileSize {
       $pageFileSettings = Get-WmiObject -Query "SELECT * FROM Win32_PageFileSetting"
       foreach ($setting in $pageFileSettings) {
-          Write-Output "-----------------------------" | Tee-Object -FilePath $logFilePath -Append
           Write-Output "Caption: $($setting.Caption)" | Tee-Object -FilePath $logFilePath -Append
           Write-Output "Description: $($setting.Description)" | Tee-Object -FilePath $logFilePath -Append
           Write-Output "Element: $($setting.Element)" | Tee-Object -FilePath $logFilePath -Append
@@ -127,7 +126,6 @@ data:
           Write-Output "MaximumSize: $($setting.MaximumSize)" | Tee-Object -FilePath $logFilePath -Append
           Write-Output "Name: $($setting.Name)" | Tee-Object -FilePath $logFilePath -Append
           Write-Output "SettingID: $($setting.SettingID)" | Tee-Object -FilePath $logFilePath -Append
-          Write-Output "-----------------------------" | Tee-Object -FilePath $logFilePath -Append
       }
     }
 
@@ -148,6 +146,7 @@ data:
     #
 
     # Get computer name
+    Write-Output "-----------------------------" | Tee-Object -FilePath $logFilePath -Append
     $computerName = [System.Environment]::MachineName
     Write-Output "Computer Name: $computerName" | Tee-Object -FilePath $logFilePath -Append
 
@@ -164,6 +163,8 @@ data:
 
     $currentDateTime = Get-Date
     Write-Output "$currentDateTime - Script execution completed" | Tee-Object -FilePath $logFilePath -Append
+    Write-Output "-----------------------------" | Tee-Object -FilePath $logFilePath -Append
+    Write-Output "" | Tee-Object -FilePath $logFilePath -Append
 
     Start-Sleep -Seconds $sleepDuration
     exit 0
