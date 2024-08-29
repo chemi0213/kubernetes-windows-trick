@@ -1,19 +1,25 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ns-windows-management
+---
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: helloworld-windows
+  namespace: ns-windows-management
+  name: ds-windows-node-config
   annotations:
-    configmap.reloader.stakater.com/reload: "onetime-job-script"
+    configmap.reloader.stakater.com/reload: "cm-windows-node-cronjob"
   labels:
-    app: helloworld
+    app: windows-node-config
 spec:
   selector:
     matchLabels:
-      app: helloworld
+      app: windows-node-config
   template:
     metadata:
       labels:
-        app: helloworld
+        app: windows-node-config
     spec:
       securityContext:
         windowsOptions:
@@ -21,10 +27,10 @@ spec:
           runAsUserName: "NT AUTHORITY\\SYSTEM"
       hostNetwork: true
       containers:
-      - name: helloworld-container
+      - name: container-windows-node-cronjob
         image: mcr.microsoft.com/windows/servercore:ltsc2022
         command: ["powershell.exe"]
-        args: ["-File", "C:\\tmp\\onetime-job.ps1"]
+        args: ["-File", "C:\\tmp\\cronjob.ps1"]
         imagePullPolicy: IfNotPresent
         volumeMounts:
         - name: script-volume
@@ -32,10 +38,11 @@ spec:
       volumes:
       - name: script-volume
         configMap:
-          name: onetime-job-script
+          name: cm-windows-node-cronjob
       restartPolicy: Always
       nodeSelector:
         kubernetes.io/os: windows
+      # (Optional) Taint the node to run the daemonset on spot instances
       tolerations:
       - key: "kubernetes.azure.com/scalesetpriority"
         operator: "Equal"
@@ -45,11 +52,12 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: onetime-job-script
+  namespace: ns-windows-management
+  name: cm-windows-node-cronjob
   annotations:
     reloader.stakater.com/match: "true"
 data:
-  onetime-job.ps1: |
+  cronjob.ps1: |
     # Function to check and set process priority
     function Set-ProcessPriority {
         param (
