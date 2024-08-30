@@ -33,12 +33,12 @@ spec:
       priorityClassName: overprovisioning
       containers:
       - name: reserve-resources
-        image: registry.k8s.io/pause:3.9
+        image: registry.k8s.io/pause:3.10
         resources:
           requests:
             cpu: "100m"
-            # (Mandatory) set this to the node's sku memory size in GiB * 80%,  e.g. Standard_D32ads_v5 has 128Gi
-            memory: "102Gi"
+            # (Mandatory) set this to the node's sku memory size in GiB * 90%,  e.g. Standard_D32ads_v5 has 128Gi
+            memory: "115Gi"
       # (Optional) Taint the node to run the daemonset on spot instances
       tolerations:
       - key: "kubernetes.azure.com/scalesetpriority"
