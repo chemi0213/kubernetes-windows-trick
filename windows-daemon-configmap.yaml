@@ -157,6 +157,25 @@ data:
       }
     }
 
+    function Pull-Image {
+        param (
+            [string]$imageName
+        )
+
+        try {
+            Write-Host "Pulling image $imageName..."
+            $output = crictl pull $imageName 2>&1
+
+            if ($LASTEXITCODE -ne 0) {
+                throw "Failed to pull image $imageName. Error: $output"
+            } else {
+                Write-Host "Successfully pulled image $imageName"
+            }
+        } catch {
+            Write-Error $_.Exception.Message
+        }
+    }
+
     #
     # Variables and constants definition
     #
@@ -168,6 +187,13 @@ data:
 
     # Set desired pagefile size in GB
     $desiredSizeGB = 20
+
+    # Set preload images list
+    $images = @(
+      "registry.k8s.io/pause:3.10",
+      "mcr.microsoft.com/windows/servercore:ltsc2022",
+      "mcr.microsoft.com/windows/nanoserver:ltsc2022"
+    )
 
     #
     # Main script execution
@@ -188,9 +214,12 @@ data:
 
     Write-Output "Checking and setting pagefile size..." | Tee-Object -FilePath $logFilePath -Append
     Get-PagefileSize
-
-    # (Mandatory) Set pagefile size
     Set-PagefileSize -pagefilePath "C:\\pagefile.sys" -desiredSizeGB $desiredSizeGB
+
+    Write-Output "Pulling specific images" | Tee-Object -FilePath $logFilePath -Append
+    foreach ($image in $images) {
+        Pull-Image -imageName $image
+    }
 
     $currentDateTime = Get-Date
     Write-Output "$currentDateTime - Script execution completed" | Tee-Object -FilePath $logFilePath -Append
