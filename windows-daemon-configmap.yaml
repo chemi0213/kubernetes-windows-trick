@@ -163,16 +163,43 @@ data:
         )
 
         try {
-            Write-Host "Pulling image $imageName..."
-            $output = crictl pull $imageName 2>&1
+            Write-Output "Checking image $imageName..." | Tee-Object -FilePath $logFilePath -Append
+            $localImage = crictl inspecti $imageName 2>&1
 
             if ($LASTEXITCODE -ne 0) {
-                throw "Failed to pull image $imageName. Error: $output"
+                Write-Output "Image $imageName not found locally. Pulling..." | Tee-Object -FilePath $logFilePath -Append
+                $output = crictl pull $imageName 2>&1
+
+                if ($LASTEXITCODE -ne 0) {
+                    throw "Failed to pull image $imageName. Error: $output"
+                } else {
+                    Write-Output "Successfully pulled image $imageName" | Tee-Object -FilePath $logFilePath -Append
+                }
             } else {
-                Write-Host "Successfully pulled image $imageName"
+                # Extract the image ID from the local image inspection
+                $localImageId = ($localImage | ConvertFrom-Json).status.id
+                Write-Output "Local  image ID: $localImageId" | Tee-Object -FilePath $logFilePath -Append
+
+                # Pull the image to check for updates
+                $output = crictl pull $imageName 2>&1
+
+                if ($LASTEXITCODE -ne 0) {
+                    throw "Failed to pull image $imageName. Error: $output"
+                } else {
+                    # Extract the image ID from the newly pulled image
+                    $newImage = crictl inspecti $imageName 2>&1
+                    $newImageId = ($newImage | ConvertFrom-Json).status.id
+                    Write-Output "Latest image ID: $newImageId" | Tee-Object -FilePath $logFilePath -Append
+
+                    if ($localImageId -eq $newImageId) {
+                        Write-Output "Image $imageName is up to date." | Tee-Object -FilePath $logFilePath -Append
+                    } else {
+                        Write-Output "Image $imageName updated successfully." | Tee-Object -FilePath $logFilePath -Append
+                    }
+                }
             }
         } catch {
-            Write-Error $_.Exception.Message
+            Write-Error $_.Exception.Message | Tee-Object -FilePath $logFilePath -Append
         }
     }
 
@@ -202,21 +229,23 @@ data:
     # Get computer name
     Write-Output "-----------------------------" | Tee-Object -FilePath $logFilePath -Append
     $computerName = [System.Environment]::MachineName
-    Write-Output "Computer Name: $computerName" | Tee-Object -FilePath $logFilePath -Append
-
     $currentDateTime = Get-Date
-    Write-Output "$currentDateTime - Checking and setting process priorities..." | Tee-Object -FilePath $logFilePath -Append
+    Write-Output "Computer Name: $computerName $currentDateTime" | Tee-Object -FilePath $logFilePath -Append
+
+    Write-Output "[Phase 1] Checking and setting process priorities..." | Tee-Object -FilePath $logFilePath -Append
     Set-ProcessPrioritybyName -processName "containerd" -desiredPriority "High"
     Set-ProcessPrioritybyName -processName "kubelet" -desiredPriority "High"
 
     $hns_processId = Get-WmiObject Win32_Process | Where-Object { $_.CommandLine -like "*svchost*" -and $_.CommandLine -like "*hns*" } | Select-Object -ExpandProperty ProcessId
     Set-ProceePriorutybyId -processId $hns_processId -desiredPriority "High"
+    Write-Output "" | Tee-Object -FilePath $logFilePath -Append
 
-    Write-Output "Checking and setting pagefile size..." | Tee-Object -FilePath $logFilePath -Append
+    Write-Output "[Phase 2] Checking and setting pagefile size..." | Tee-Object -FilePath $logFilePath -Append
     Get-PagefileSize
     Set-PagefileSize -pagefilePath "C:\\pagefile.sys" -desiredSizeGB $desiredSizeGB
+    Write-Output "" | Tee-Object -FilePath $logFilePath -Append
 
-    Write-Output "Pulling specific images" | Tee-Object -FilePath $logFilePath -Append
+    Write-Output "[Phase 3] Pulling specific images" | Tee-Object -FilePath $logFilePath -Append
     foreach ($image in $images) {
         Pull-Image -imageName $image
     }
