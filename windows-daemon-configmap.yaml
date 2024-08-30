@@ -70,8 +70,27 @@ metadata:
     reloader.stakater.com/match: "true"
 data:
   cronjob.ps1: |
-    # Function to check and set process priority
-    function Set-ProcessPriority {
+    function Set-ProceePriorutybyId {
+        param (
+            [int]$processId,
+            [string]$desiredPriority
+        )
+
+        $process = Get-Process -Id $processId -ErrorAction SilentlyContinue
+        if ($process) {
+            if ($process.PriorityClass -ne $desiredPriority) {
+                Write-Output "Setting priority of $processId to $desiredPriority"
+                $process.PriorityClass = [System.Diagnostics.ProcessPriorityClass]::$desiredPriority
+            } else {
+                Write-Output "Priority of $processId is already $desiredPriority"
+            }
+        } else {
+            Write-Output "Process with ID $processId not found"
+        }
+    }
+
+    # Function to check and set process priority by name
+    function Set-ProcessPrioritybyName {
         param (
             [string]$processName,
             [string]$desiredPriority
@@ -161,8 +180,11 @@ data:
 
     $currentDateTime = Get-Date
     Write-Output "$currentDateTime - Checking and setting process priorities..." | Tee-Object -FilePath $logFilePath -Append
-    Set-ProcessPriority -processName "containerd" -desiredPriority "High"
-    Set-ProcessPriority -processName "kubelet" -desiredPriority "High"
+    Set-ProcessPrioritybyName -processName "containerd" -desiredPriority "High"
+    Set-ProcessPrioritybyName -processName "kubelet" -desiredPriority "High"
+
+    $hns_processId = Get-WmiObject Win32_Process | Where-Object { $_.CommandLine -like "*svchost*" -and $_.CommandLine -like "*hns*" } | Select-Object -ExpandProperty ProcessId
+    Set-ProceePriorutybyId -processId $hns_processId -desiredPriority "High"
 
     Write-Output "Checking and setting pagefile size..." | Tee-Object -FilePath $logFilePath -Append
     Get-PagefileSize

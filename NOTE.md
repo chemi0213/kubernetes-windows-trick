@@ -834,3 +834,149 @@ foreach ($setting in $pageFileSettings) {
     Write-Output "-----------------------------"
 }
 ```
+
+### Q: 顯示 svchost process 中的 CommandLine 字串
+
+```dotnetcli
+Get-WmiObject Win32_Process | Where-Object { $_.CommandLine -like '*svchost*' } | Select-Object Name, ProcessId, CommandLine
+
+PS C:\k\debug> Get-WmiObject Win32_Process | Where-Object { $_.CommandLine -like '*svchost*' } | Select-Object Name, ProcessId, CommandLine
+
+Name        ProcessId CommandLine
+----        --------- -----------
+svchost.exe      1952 C:\Windows\system32\svchost.exe -k DcomLaunch -p
+svchost.exe      1536 C:\Windows\system32\svchost.exe -k RPCSS -p
+svchost.exe      1664 C:\Windows\system32\svchost.exe -k DcomLaunch -p -s LSM
+svchost.exe      2064 C:\Windows\System32\svchost.exe -k termsvcs -s TermService
+svchost.exe      2084 C:\Windows\system32\svchost.exe -k LocalSystemNetworkRestricted -p -s HvHost
+svchost.exe      2104 C:\Windows\System32\svchost.exe -k LocalServiceNetworkRestricted -p -s lmhosts
+svchost.exe      2112 C:\Windows\system32\svchost.exe -k ICService -p -s vmicheartbeat
+svchost.exe      2132 C:\Windows\system32\svchost.exe -k LocalSystemNetworkRestricted -p -s vmickvpexchange
+svchost.exe      2140 C:\Windows\system32\svchost.exe -k LocalSystemNetworkRestricted -p -s vmicshutdown
+svchost.exe      2224 C:\Windows\system32\svchost.exe -k LocalServiceNetworkRestricted -p -s vmictimesync
+svchost.exe      2540 C:\Windows\system32\svchost.exe -k netsvcs -p -s Winmgmt
+svchost.exe      2616 C:\Windows\System32\svchost.exe -k LocalSystemNetworkRestricted -p -s UmRdpService
+svchost.exe      2864 C:\Windows\System32\svchost.exe -k LocalServiceNetworkRestricted -p -s EventLog
+svchost.exe      2872 C:\Windows\system32\svchost.exe -k netsvcs -s CertPropSvc
+svchost.exe      2948 C:\Windows\system32\svchost.exe -k netsvcs -p -s gpsvc
+svchost.exe      2956 C:\Windows\system32\svchost.exe -k netsvcs -p -s ProfSvc
+svchost.exe      2968 C:\Windows\system32\svchost.exe -k LocalService -p -s EventSystem
+svchost.exe      2976 C:\Windows\system32\svchost.exe -k LocalService -p -s nsi
+svchost.exe      2336 C:\Windows\system32\svchost.exe -k netsvcs -p -s SENS
+svchost.exe      2396 C:\Windows\system32\svchost.exe -k netsvcs -p -s Schedule
+svchost.exe      2464 C:\Windows\system32\svchost.exe -k LocalServiceNetworkRestricted -p -s Dhcp
+svchost.exe      2468 C:\Windows\system32\svchost.exe -k NetworkService -p -s Dnscache
+svchost.exe      2656 C:\Windows\System32\svchost.exe -k NetworkService -p -s LanmanWorkstation
+svchost.exe      3076 C:\Windows\system32\svchost.exe -k LocalServiceNoNetworkFirewall -p
+svchost.exe      3228 C:\Windows\System32\svchost.exe -k netsvcs -p -s SessionEnv
+svchost.exe      3288 C:\Windows\system32\svchost.exe -k LocalServiceNetworkRestricted -p -s TimeBrokerSvc
+svchost.exe      3452 C:\Windows\system32\svchost.exe -k LocalServiceNoNetwork -p
+svchost.exe      3460 C:\Windows\system32\svchost.exe -k NetworkService -p -s CryptSvc
+svchost.exe      3468 C:\Windows\system32\svchost.exe -k appmodel -p -s StateRepository
+svchost.exe      3476 C:\Windows\system32\svchost.exe -k LocalServiceNetworkRestricted -p -s WinHttpAutoProxySvc
+svchost.exe      3500 C:\Windows\system32\svchost.exe -k netsvcs -p -s IKEEXT
+svchost.exe      3544 C:\Windows\system32\svchost.exe -k netsvcs -p -s UserManager
+svchost.exe      3536 C:\Windows\System32\svchost.exe -k netsvcs -p -s sacsvr
+svchost.exe      3556 C:\Windows\System32\svchost.exe -k utcsvc -p
+svchost.exe      3564 C:\Windows\System32\svchost.exe -k NetworkService -p -s NlaSvc
+svchost.exe      3572 C:\Windows\system32\svchost.exe -k LocalSystemNetworkRestricted -p -s SysMain
+svchost.exe      3596 C:\Windows\system32\svchost.exe -k LocalService -s W32Time
+svchost.exe      3828 C:\Windows\system32\svchost.exe -k NetworkServiceNetworkRestricted -p -s PolicyAgent
+svchost.exe      4000 C:\Windows\System32\svchost.exe -k NetSvcs -p -s iphlpsvc
+svchost.exe      3220 C:\Windows\System32\svchost.exe -k NetworkService -p -s WinRM
+svchost.exe      4120 C:\Windows\System32\svchost.exe -k smbsvcs -s LanmanServer
+svchost.exe      4248 C:\Windows\System32\svchost.exe -k LocalService -p -s netprofm
+svchost.exe      4524 C:\Windows\system32\svchost.exe -k NetSvcs -p -s hns
+svchost.exe      4712 C:\Windows\system32\svchost.exe -k NetSvcs -s nvagent
+svchost.exe      4824 C:\Windows\System32\svchost.exe -k netsvcs -p -s SharedAccess
+svchost.exe      5988 C:\Windows\System32\svchost.exe -k LocalServiceNoNetwork -p -s pla
+svchost.exe      8248 C:\Windows\system32\svchost.exe -k DcomLaunch -p
+svchost.exe      8256 C:\Windows\system32\svchost.exe -k DcomLaunch -p
+svchost.exe      8324 C:\Windows\system32\svchost.exe -k RPCSS -p
+svchost.exe      8316 C:\Windows\system32\svchost.exe -k RPCSS -p
+svchost.exe      8532 C:\Windows\system32\svchost.exe -k netsvcs -p
+svchost.exe      8540 C:\Windows\system32\svchost.exe -k netsvcs -p
+svchost.exe      8616 C:\Windows\system32\svchost.exe -k LocalService -p
+svchost.exe      8632 C:\Windows\system32\svchost.exe -k LocalService -p
+svchost.exe      8868 C:\Windows\system32\svchost.exe -k DcomLaunch -p
+svchost.exe      8924 C:\Windows\System32\svchost.exe -k LocalServiceNetworkRestricted -p
+svchost.exe      8916 C:\Windows\System32\svchost.exe -k LocalServiceNetworkRestricted -p
+svchost.exe      8964 C:\Windows\system32\svchost.exe -k RPCSS -p
+svchost.exe      9056 C:\Windows\system32\svchost.exe -k NetworkService -p
+svchost.exe      9072 C:\Windows\system32\svchost.exe -k NetworkService -p
+svchost.exe      9236 C:\Windows\system32\svchost.exe -k netsvcs -p
+svchost.exe      9748 C:\Windows\system32\svchost.exe -k LocalService -p
+svchost.exe     10076 C:\Windows\System32\svchost.exe -k LocalServiceNetworkRestricted -p
+svchost.exe     10132 C:\Windows\system32\svchost.exe -k NetworkService -p
+svchost.exe      9956 C:\Windows\system32\svchost.exe -k DcomLaunch -p
+svchost.exe      9912 C:\Windows\system32\svchost.exe -k RPCSS -p
+svchost.exe     10244 C:\Windows\system32\svchost.exe -k netsvcs -p
+svchost.exe     10272 C:\Windows\system32\svchost.exe -k LocalService -p
+svchost.exe     10360 C:\Windows\System32\svchost.exe -k LocalServiceNetworkRestricted -p
+svchost.exe     10396 C:\Windows\system32\svchost.exe -k NetworkService -p
+svchost.exe     10480 C:\Windows\System32\svchost.exe -k utcsvc -p
+svchost.exe     11188 C:\Windows\system32\svchost.exe -k RPCSS -p
+svchost.exe     11208 C:\Windows\system32\svchost.exe -k DcomLaunch -p
+svchost.exe     10380 C:\Windows\system32\svchost.exe -k netsvcs -p
+svchost.exe     10604 C:\Windows\system32\svchost.exe -k LocalService -p
+svchost.exe     10796 C:\Windows\System32\svchost.exe -k LocalServiceNetworkRestricted -p
+svchost.exe     11296 C:\Windows\system32\svchost.exe -k NetworkService -p
+svchost.exe     11416 C:\Windows\system32\svchost.exe -k LocalServiceNoNetwork -p
+svchost.exe     11444 C:\Windows\system32\svchost.exe -k appmodel -p
+svchost.exe     11476 C:\Windows\System32\svchost.exe -k utcsvc -p
+svchost.exe      5108 C:\Windows\system32\svchost.exe -k RPCSS -p
+svchost.exe      1608 C:\Windows\system32\svchost.exe -k DcomLaunch -p
+svchost.exe     12380 C:\Windows\system32\svchost.exe -k netsvcs -p
+svchost.exe      7300 C:\Windows\system32\svchost.exe -k LocalService -p
+svchost.exe      8288 C:\Windows\System32\svchost.exe -k LocalServiceNetworkRestricted -p
+svchost.exe      8200 C:\Windows\system32\svchost.exe -k NetworkService -p
+svchost.exe     11184 C:\Windows\System32\svchost.exe -k utcsvc -p
+svchost.exe     10188 C:\Windows\system32\svchost.exe -k appmodel -p
+svchost.exe      2272 C:\Windows\system32\svchost.exe -k RPCSS -p
+svchost.exe      6356 C:\Windows\system32\svchost.exe -k DcomLaunch -p
+svchost.exe      9020 C:\Windows\system32\svchost.exe -k DcomLaunch -p
+svchost.exe      7500 C:\Windows\system32\svchost.exe -k RPCSS -p
+svchost.exe      1676 C:\Windows\system32\svchost.exe -k LocalSystemNetworkRestricted -p
+svchost.exe     12548 C:\Windows\system32\svchost.exe -k LocalServiceNoNetwork -p
+svchost.exe     13012 C:\Windows\system32\svchost.exe -k netsvcs -p
+svchost.exe     12860 C:\Windows\system32\svchost.exe -k netsvcs -p
+svchost.exe     12084 C:\Windows\system32\svchost.exe -k LocalService -p
+svchost.exe     11280 C:\Windows\system32\svchost.exe -k LocalService -p
+svchost.exe      9772 C:\Windows\System32\svchost.exe -k LocalServiceNetworkRestricted -p
+svchost.exe      8892 C:\Windows\System32\svchost.exe -k LocalServiceNetworkRestricted -p
+svchost.exe      7732 C:\Windows\system32\svchost.exe -k NetworkService -p
+svchost.exe     10292 C:\Windows\system32\svchost.exe -k NetworkService -p
+svchost.exe     13364 C:\Windows\system32\svchost.exe -k LocalServiceNoNetwork -p
+svchost.exe     13388 C:\Windows\System32\svchost.exe -k utcsvc -p
+svchost.exe     13440 C:\Windows\system32\svchost.exe -k appmodel -p
+svchost.exe     14228 C:\Windows\system32\svchost.exe -k LocalServiceNoNetwork -p
+svchost.exe     14272 C:\Windows\system32\svchost.exe -k appmodel -p
+svchost.exe     11272 C:\Windows\System32\svchost.exe -k utcsvc -p
+svchost.exe     14692 C:\Windows\System32\svchost.exe -k LocalServiceNoNetwork -p -s DPS
+svchost.exe     15352 C:\Windows\system32\svchost.exe -k LocalSystemNetworkRestricted -p -s UALSVC
+svchost.exe     14040 C:\Windows\system32\svchost.exe -k netsvcs -p -s UsoSvc
+svchost.exe     17012 C:\Windows\system32\svchost.exe -k DcomLaunch -p
+svchost.exe     16632 C:\Windows\system32\svchost.exe -k RPCSS -p
+svchost.exe      2216 C:\Windows\system32\svchost.exe -k netsvcs -p
+svchost.exe     11092 C:\Windows\system32\svchost.exe -k LocalService -p
+svchost.exe      8124 C:\Windows\System32\svchost.exe -k LocalServiceNetworkRestricted -p
+svchost.exe      5628 C:\Windows\system32\svchost.exe -k NetworkService -p
+svchost.exe     12544 C:\Windows\system32\svchost.exe -k DcomLaunch -p
+svchost.exe     15988 C:\Windows\system32\svchost.exe -k RPCSS -p
+svchost.exe      5912 C:\Windows\system32\svchost.exe -k netsvcs -p
+svchost.exe      7328 C:\Windows\system32\svchost.exe -k LocalService -p
+svchost.exe     11676 C:\Windows\System32\svchost.exe -k LocalServiceNetworkRestricted -p
+svchost.exe      6852 C:\Windows\system32\svchost.exe -k NetworkService -p
+svchost.exe      1780 C:\Windows\system32\svchost.exe -k DcomLaunch -p
+svchost.exe     14560 C:\Windows\system32\svchost.exe -k RPCSS -p
+svchost.exe      3348 C:\Windows\system32\svchost.exe -k netsvcs -p
+svchost.exe     16816 C:\Windows\system32\svchost.exe -k LocalService -p
+svchost.exe      7872 C:\Windows\System32\svchost.exe -k LocalServiceNetworkRestricted -p
+svchost.exe     12680 C:\Windows\system32\svchost.exe -k NetworkService -p
+```
+
+### Q: 僅顯示 svchost 和 hns 中的 ProcessID
+
+```dotnetcli
+Get-WmiObject Win32_Process | Where-Object { $_.CommandLine -like "*svchost*" -and $_.CommandLine -like "*hns*" } | Select-Object -ExpandProperty ProcessId
+```
